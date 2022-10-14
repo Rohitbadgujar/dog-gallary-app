@@ -7,7 +7,10 @@ import Navbar from "react-bootstrap/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useEffect, useState } from "react";
 import Button from "./components/Button";
-import {MdDeleteForever, MdFavoriteBorder, MdFavorite } from "react-icons/md";
+import { MdDeleteForever, MdFavoriteBorder, MdFavorite } from "react-icons/md";
+import ImageList from "@mui/material/ImageList";
+import ImageListItem from "@mui/material/ImageListItem";
+
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -30,7 +33,7 @@ export default function App() {
   const VALID_FORMAT = ["jpg", "png", "gif", "jpeg"];
   let parseDogsList;
 
-  const removeItem = (index) => {
+  const removeItem = () => {
     setFavoriteDogs({});
     localStorage.removeItem(LOCAL_STORAGE_DOGS_NAME);
   };
@@ -67,10 +70,15 @@ export default function App() {
     storeDogs(strigifiedDogList);
     setFavoriteDogs([...newList]);
   };
+   
+  useEffect(() => {
+    // Update the document title using the browser API
+    fetchData();
+  },[]);
 
   const fetchData = async () => {
     try {
-      const dogRequests = new Array(30)
+      const dogRequests = new Array(12)
         .fill("https://random.dog/woof.json")
         .map((url) =>
           fetch(url)
@@ -79,7 +87,7 @@ export default function App() {
         );
 
       let dogs = await Promise.all(dogRequests);
-      dogs = dogs.filter((img) => VALID_FORMAT.includes(img.split('.')[2]));
+      dogs = dogs.filter((img) => VALID_FORMAT.includes(img.split(".")[2]));
       setDogImages(dogs);
     } catch (error) {
       console.log("error", error);
@@ -108,22 +116,33 @@ export default function App() {
         }}
       >
         <div style={{ float: "left" }}>
-          <Grid container spacing={3} className={classes.grid}>
-            {dogImages.slice(0, 6).map((dogImage, index) => (
-              <Grid key={index} item xs={4}>
-                <ImageDisplay  onClick={() => {}} imageUrl={dogImage} />
+        <ImageList cols={3} gap={15}>
+            {dogImages.slice(0, 6).map((item, index) => (
+              <ImageListItem key={item}>
+                <img
+                  src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                  srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                  alt="dog"
+                  loading="lazy"
+                />
                 <Button
                   onClick={() => {
                     saveDogsList(dogImages[index]);
-                    alert("Selected dog image added successfully to your favorites");
+                    alert(
+                      "Selected dog image added successfully to your favorites"
+                    );
                   }}
                   icon={<MdFavoriteBorder />}
-                  style={{ background: "black", color: "white" }}
+                  style={{
+                    margin: "1em",
+                    background: "black",
+                    color: "white",
+                  }}
                   text={"Save to Favorites"}
                 />
-              </Grid>
+              </ImageListItem>
             ))}
-          </Grid>
+          </ImageList>
         </div>
         <div style={{ float: "left", padding: 20, width: "100%" }}>
           <Button
@@ -132,39 +151,56 @@ export default function App() {
               // notify('Getting 6 cute dogs for you');
             }}
             //icon={<ImImages />}
-            style={{ margin: "1em",  background: "rgb(80 81 88)", color: "white" }}
-            
+            style={{
+              margin: "1em",
+              background: "rgb(80 81 88)",
+              color: "white",
+            }}
             text={"Next Set of Images"}
           />
           <Button
             onClick={() => {
               removeItem();
-              // notify('Getting 6 cute dogs for you');
             }}
             icon={<MdDeleteForever />}
-            style={{ background: "#0C21D3", color: "white" }}
+            style={{
+              margin: "1em",
+              background: "rgb(223 43 43)",
+              color: "white",
+            }}
             text={"Clear Favorites"}
           />
         </div>
 
         <div style={{ float: "left" }}>
           {favoriteDogs.length > 0 && (
-            <Grid container spacing={3} className={classes.grid}>
-              {favoriteDogs.map((dogImage, index) => (
-                <Grid key={index} item xs={4}>
-                  <ImageDisplay imageUrl={dogImage} />
-                  <Button
-                    onClick={() => {
-                      deleteFavDog(favoriteDogs[index]);
-                      alert("Selected dog image removed successfully from your favorites");
-                    }}
-                    icon={<MdFavorite />}
-                    style={{ margin: "1em", background: "rgb(223 43 43)", color: "white" }}
-                    text={"Remove from Favorites"}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+            <ImageList cols={3} gap={15}>
+            {favoriteDogs.slice(0, 6).map((item, index) => (
+              <ImageListItem key={item}>
+                <img
+                  src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                  srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                  alt="dog"
+                  loading="lazy"
+                />
+                <Button
+                  onClick={() => {
+                    deleteFavDog(favoriteDogs[index]);
+                    alert(
+                      "Selected dog image removed successfully from your favorites"
+                    );
+                  }}
+                  icon={<MdFavorite />}
+                  style={{
+                    margin: "1em",
+                    background: "rgb(223 43 43)",
+                    color: "white",
+                  }}
+                  text={"Remove from Favorites"}
+                />
+              </ImageListItem>
+            ))}
+          </ImageList>
           )}
         </div>
       </div>
