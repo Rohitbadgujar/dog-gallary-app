@@ -1,6 +1,3 @@
-// import "./styles.css";
-import Grid from "@material-ui/core/Grid";
-import ImageDisplay from "./components/ImageDisplay";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
@@ -10,7 +7,47 @@ import Button from "./components/Button";
 import { MdDeleteForever, MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
+import PropTypes from "prop-types";
+import SwipeableViews from "react-swipeable-views";
+import { useTheme } from "@mui/material/styles";
+import AppBar from "@mui/material/AppBar";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `full-width-tab-${index}`,
+    "aria-controls": `full-width-tabpanel-${index}`,
+  };
+}
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -20,15 +57,23 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function App() {
+  const theme = useTheme();
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const handleChangeIndex = (index) => {
+    setValue(index);
+  };
+
   const LOCAL_STORAGE_DOGS_NAME = "FAVORITE_DOGS_LIST";
   const localStorageDogsList = localStorage.getItem(LOCAL_STORAGE_DOGS_NAME);
 
-  const classes = useStyles;
   const [dogImages, setDogImages] = React.useState([]);
 
   const [idList, setIdList] = useState(0);
-  const [dogsList, setDogsList] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(0);
 
   const VALID_FORMAT = ["jpg", "png", "gif", "jpeg"];
   let parseDogsList;
@@ -70,11 +115,11 @@ export default function App() {
     storeDogs(strigifiedDogList);
     setFavoriteDogs([...newList]);
   };
-   
+
   useEffect(() => {
     // Update the document title using the browser API
     fetchData();
-  },[]);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -101,108 +146,120 @@ export default function App() {
           <Navbar.Brand href="#home">Dog Images Gallary</Navbar.Brand>
         </Container>
       </Navbar>
-      <div
-        style={{
-          width: "100%",
-          justifyContent: "center",
-          flexDirection: "column",
-          display: "flex",
-          alignItems: "center",
-          float: "left",
-          marginLeft: "auto",
-          marginRight: "auto",
-          height: "auto",
-          width: "auto",
-        }}
-      >
-        <div style={{ float: "left" }}>
-        <ImageList cols={3} gap={15}>
-            {dogImages.slice(0, 6).map((item, index) => (
-              <ImageListItem key={item}>
-                <img
-                  src={`${item}?w=164&h=164&fit=crop&auto=format`}
-                  srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                  alt="dog"
-                  loading="lazy"
-                />
+      <div>
+        <Box sx={{ bgcolor: "background.paper" }}>
+          <AppBar position="static">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              indicatorColor="secondary"
+              textColor="inherit"
+              aria-label="full width tabs example"
+            >
+              <Tab label="Dog Image Gallary" {...a11yProps(0)} />
+              <Tab label="Favorites" {...a11yProps(1)} />
+            </Tabs>
+          </AppBar>
+          <SwipeableViews
+            axis={theme.direction === "rtl" ? "x-reverse" : "x"}
+            index={value}
+            onChangeIndex={handleChangeIndex}
+          >
+            <TabPanel value={value} index={0} dir={theme.direction}>
+              <div style={{ float: "left", padding: 20, width: "50%" }}>
                 <Button
                   onClick={() => {
-                    saveDogsList(dogImages[index]);
-                    alert(
-                      "Selected dog image added successfully to your favorites"
-                    );
+                    fetchData();
+                    // notify('Getting 6 cute dogs for you');
                   }}
-                  icon={<MdFavoriteBorder />}
+                  //icon={<ImImages />}
                   style={{
                     margin: "1em",
-                    background: "black",
+                    background: "rgb(80 81 88)",
                     color: "white",
                   }}
-                  text={"Save to Favorites"}
+                  text={"Next Set of Images"}
                 />
-              </ImageListItem>
-            ))}
-          </ImageList>
-        </div>
-        <div style={{ float: "left", padding: 20, width: "100%" }}>
-          <Button
-            onClick={() => {
-              fetchData();
-              // notify('Getting 6 cute dogs for you');
-            }}
-            //icon={<ImImages />}
-            style={{
-              margin: "1em",
-              background: "rgb(80 81 88)",
-              color: "white",
-            }}
-            text={"Next Set of Images"}
-          />
-          <Button
-            onClick={() => {
-              removeItem();
-            }}
-            icon={<MdDeleteForever />}
-            style={{
-              margin: "1em",
-              background: "rgb(223 43 43)",
-              color: "white",
-            }}
-            text={"Clear Favorites"}
-          />
-        </div>
-
-        <div style={{ float: "left" }}>
-          {favoriteDogs.length > 0 && (
-            <ImageList cols={3} gap={15}>
-            {favoriteDogs.slice(0, 6).map((item, index) => (
-              <ImageListItem key={item}>
-                <img
-                  src={`${item}?w=164&h=164&fit=crop&auto=format`}
-                  srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                  alt="dog"
-                  loading="lazy"
-                />
+              </div>
+              <div style={{ float: "left" }}>
+                <ImageList cols={3} gap={15} sx={{ width: 1000 }}>
+                  {dogImages.slice(0, 6).map((item, index) => (
+                    <ImageListItem key={item}>
+                      <img
+                        src={`${item}?w=50&h=50&fit=crop&auto=format`}
+                        srcSet={`${item}?w=50&h=50&fit=crop&auto=format&dpr=2`}
+                        alt="dog"
+                        loading="lazy"
+                      />
+                      <Button
+                        onClick={() => {
+                          saveDogsList(dogImages[index]);
+                          alert(
+                            "Selected dog image added successfully to your favorites"
+                          );
+                        }}
+                        icon={<MdFavoriteBorder />}
+                        style={{
+                          margin: "1em",
+                          background: "black",
+                          color: "white",
+                        }}
+                        text={"Save to Favorites"}
+                      />
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              </div>
+            </TabPanel>
+            <TabPanel value={value} index={1} dir={theme.direction}>
+              <div style={{ float: "left", padding: 20, width: "50%" }}>
                 <Button
                   onClick={() => {
-                    deleteFavDog(favoriteDogs[index]);
-                    alert(
-                      "Selected dog image removed successfully from your favorites"
-                    );
+                    removeItem();
                   }}
-                  icon={<MdFavorite />}
+                  icon={<MdDeleteForever />}
                   style={{
                     margin: "1em",
                     background: "rgb(223 43 43)",
                     color: "white",
                   }}
-                  text={"Remove from Favorites"}
+                  text={"Clear Favorites"}
                 />
-              </ImageListItem>
-            ))}
-          </ImageList>
-          )}
-        </div>
+              </div>
+              <div style={{ float: "left" }}>
+                {favoriteDogs.length > 0 && (
+                  <ImageList cols={3} gap={15} sx={{ width: 1000 }}>
+                    {favoriteDogs.map((item, index) => (
+                      <ImageListItem key={item}>
+                        <img
+                          src={`${item}?w=50&h=50&fit=crop&auto=format`}
+                          srcSet={`${item}?w=50&h=50&fit=crop&auto=format&dpr=2`}
+                          alt="dog"
+                          loading="lazy"
+                        />
+                        <Button
+                          onClick={() => {
+                            deleteFavDog(favoriteDogs[index]);
+                            alert(
+                              "Selected dog image removed successfully from your favorites"
+                            );
+                          }}
+                          icon={<MdFavorite />}
+                          style={{
+                            margin: "1em",
+                            background: "rgb(223 43 43)",
+                            color: "white",
+                          }}
+                          text={"Remove from Favorites"}
+                        />
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                )}
+              </div>
+            </TabPanel>
+          </SwipeableViews>
+        </Box>
       </div>
     </div>
   );
